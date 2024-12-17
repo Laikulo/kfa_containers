@@ -1,7 +1,7 @@
 all: builders kltest/.built
 
 
-machines := linux avr ar100 arm rp2040
+machines := linux avr ar100 arm rp2040 pru
 
 builders: $(foreach machine,$(machines),kfa_build_$(machine)/.built)
 

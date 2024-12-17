@@ -1,3 +1,4 @@
 from bitnami/minideb:bookworm as buildbox
 	run install_packages make python3.11 binutils curl ca-certificates && \
-            update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 311
+            update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 311 && \
+            mkdir -p /usr/src/klipper
