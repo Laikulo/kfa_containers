@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
-set -x
-mkdir test test/{l,r,t,k} test/l/{base,arch,lower} test/k/src
+set -xe
+mkdir -p test test/{l,r,t,k} test/l/{base,arch} test/k/src
 mount -t tmpfs tmpfs test/t
 
 squashfuse kfa_buildbase.sfs test/l/base
-squashfuse kfa_build_rp2040.sfs test/l/arch
+squashfuse kfa_build_pru.sfs test/l/arch
 squashfuse klipper_src.sfs test/k/src
 
 mount -t tmpfs tmpfs test/t
 mkdir test/t/{u,w}
 
 mount -t overlay overlay -o lowerdir=$PWD/test/l/base:$PWD/test/l/arch test/r
+mount -t tmpfs tmpfs test/r/tmp
+mount -t tmpfs none test/r/dev
+
 mount -t overlay overlay -o lowerdir=$PWD/test/k/src,workdir=$PWD/test/t/w,upperdir=$PWD/test/t/u test/r/usr/src/klipper
 
 
