@@ -1,10 +1,13 @@
 all: builders kltest/.built
 
+
 machines := linux avr ar100 arm rp2040
 
 builders: $(foreach machine,$(machines),kfa_build_$(machine)/.built)
 
-.PHONEY: all builders clean
+layers: $(foreach machine,$(machines),kfa_build_$(machine).sfs)
+
+.PHONEY: all builders clean layers
 
 kfa_buildbase/.built: kfa_buildbase/Containerfile 
 	podman build -t kfa_buildbase kfa_buildbase
@@ -14,8 +17,11 @@ kfa_buildbase/.built: kfa_buildbase/Containerfile
 	podman build -t $* $*
 	touch $@
 
-kltest/.built: kfa_build_arm/.built klipper_src/.built
+base.sfs: kfa_buildbase/.built
+	bin/extract-base-layer kfa_buildbase
 
+%.sfs: %/.built base.sfs
+	bin/extract-delta kfa_buildbase $*
 
 clean:
 	rm -fv kfa_build_*/.built kfa_buildbase/.built

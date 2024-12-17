@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -x
+target_image="$1"
+typeset -a layers
+readarray -t layers < <( podman image inspect "$target_image" | jq '.[0].RootFS.Layers[]' -r | cut -f2 -d: )
+
+typeset -a layer_tars
+layer_tars=()
+for layer in "${layers[@]}"; do
+	layer_tars+=( "$layer.tar" )
+done
+  
+
+tmp_dir="$(mktemp -d -t layer_extract.XXXXXXXX)"
+podman image save "$target_image" | tar -x --no-same-permissions -C $tmp_dir "${layer_tars[@]}" 
+pushd "$tmp_dir"
+	chmod u+rw "${layer_tars[@]}"
+
+	tar -A -f "${layer_tars[@]}"
+popd
+mksquashfs - "$1.sfs" -tar <"${tmp_dir}/${layer_tars[0]}"
+rm -rf "${tmp_dir}"
