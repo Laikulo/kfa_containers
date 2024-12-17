@@ -1,6 +1,6 @@
 all: builders kltest/.built
 
-machines := linux avr ar100
+machines := linux avr ar100 arm rp2040
 
 builders: $(foreach machine,$(machines),kfa_build_$(machine)/.built)
 
@@ -14,7 +14,7 @@ kfa_buildbase/.built: kfa_buildbase/Containerfile
 	podman build -t $* $*
 	touch $@
 
-kltest/.built: kfa_build_linux/.built klipper_src/.built
+kltest/.built: kfa_build_arm/.built klipper_src/.built
 
 
 clean:

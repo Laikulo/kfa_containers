@@ -1,0 +1,3 @@
+from kfa_buildbase:latest
+  run curl -L# 'https://more.musl.cc/10/x86_64-linux-musl/or1k-linux-musl-cross.tgz' | tar -C /opt -xz
+  ENV PATH=${PATH}:/opt/or1k-linux-musl-cross/bin

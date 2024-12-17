@@ -1,4 +1,4 @@
-arg klipper_machine=avr
+arg klipper_machine=rp2040
 from kfa_build_${klipper_machine}
   copy --from=klipper_src:latest / /usr/share/src/klipper
   workdir /usr/share/src/klipper
