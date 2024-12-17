@@ -1,0 +1,5 @@
+from bitnami/git:latest as retriever
+	run git clone --depth 1 https://github.com/klipper3d/klipper.git /usr/src/klipper
+
+from scratch as klipper_holder
+copy --from=retriever /usr/src/klipper/ /

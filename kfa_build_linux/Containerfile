@@ -1,0 +1,2 @@
+from kfa_buildbase:latest
+  run install_packages libc6-dev gcc
