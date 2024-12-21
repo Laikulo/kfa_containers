@@ -73,6 +73,9 @@ jobs:
       matrix:
         machine: [ ar100, arm, avr, linux, pru, rp2040 ]
     uses: ./.github/workflows/build-machine.yml
+    permissions:
+      packages: write
+      contents: read
     with:
       machine: ${{ matrix.machine }}
       base_image: ${{ needs.build_base_container.outputs.built_image }}
