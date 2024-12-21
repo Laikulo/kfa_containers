@@ -61,4 +61,4 @@ jobs:
       - name: extract
         run: |
           mkdir out
-          ./bin/extract-base-layer "${{needs.build_base_container.outputs.built_image" out/kfa_buildbase.sfs
+          ./bin/extract-base-layer "${{needs.build_base_container.outputs.built_image}}" out/kfa_buildbase.sfs
