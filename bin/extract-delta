@@ -1,7 +1,25 @@
 #!/usr/bin/env bash
-set -x
+
+function err_handler {
+  set +e
+  trap - ERR
+  cleanup
+  exit 1
+}
+
+function cleanup {
+  if [[ $tmp_dir ]]; then
+    rm -rf "$tmp_dir"
+  fi
+}
+
+trap err_handler ERR
+
+set -xeu -o pipefail
+
 base_image="$1"
 target_image="$2"
+output_file="${3:-$target_image.sfs}"
 typeset -a base_layers target_layers extract_layers
 readarray -t base_layers < <( podman image inspect "$base_image" | jq '.[0].RootFS.Layers[]' -r | cut -f2 -d: )
 
@@ -44,5 +62,5 @@ pushd "$tmp_dir"
 
 	tar -A -f "${layer_tars[@]}"
 popd
-mksquashfs - "$target_image.sfs" -tar <"${tmp_dir}/${layer_tars[0]}"
+mksquashfs - "$output_file" -tar <"${tmp_dir}/${layer_tars[0]}"
 rm -rf "${tmp_dir}"

@@ -64,3 +64,15 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: out/kfa_buildbase.sfs
+          name: 'kfa_buildbase.sfs'
+
+  call_machine_builds:
+    needs:
+      - build_base_container
+    strategy:
+      matrix:
+        machine: [ ar100, arm, avr, linux, pru, rp2040 ]
+    uses: ./.github/workflows/build-machine.yml
+    with:
+      machine: ${{ matrix.machine }}
+      base_image: ${{ needs.build_base_container.outputs.built_image }}
