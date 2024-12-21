@@ -65,8 +65,8 @@ jobs:
         run: |
           mkdir out
           podman pull "${{ inputs.base_image }}"
-          podman pull "${{ needs.build_base_container.outputs.built_image }}"
-          ./bin/extract-delta "${{ inputs.base_image }}" "${{ needs.build_base_container.outputs.built_image }}" out/kfa_build_${{ inputs.machine }}.sfs
+          podman pull "${{ needs.build_machine_container.outputs.built_image }}"
+          ./bin/extract-delta "${{ inputs.base_image }}" "${{ needs.build_machine_container.outputs.built_image }}" out/kfa_build_${{ inputs.machine }}.sfs
       - uses: actions/upload-artifact@v4
         with:
           path: out/kfa_build_${{ inputs.machine }}.sfs

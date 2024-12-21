@@ -1,3 +1,5 @@
+ARG BASE_IMAGE=kfa_buildbase:latest
+
 from bitnami/minideb:latest as pruchain_downloader
   run install_packages git ca-certificates wget lbzip2 xz-utils
   run git clone https://github.com/dinuxbg/gnupru -b 2024.05 --depth 1 /usr/src/gnupru
@@ -11,8 +13,7 @@ from bitnami/minideb:latest as pruchain_builder
   workdir /usr/src/gnupru
   env PREFIX=/opt/gnupru
   run ./build.sh
-  
-ARG BASE_IMAGE=kfa_buildbase:latest
+
 from ${BASE_IMAGE}
   run install_packages libmpc3 libgmp10 libmpfr6
   copy --from=pruchain_builder /opt/gnupru /opt/gnupru/
