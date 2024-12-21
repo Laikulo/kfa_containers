@@ -55,9 +55,6 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v4
-      - name: Pull
-        run: |
-          docker pull ${{ needs.build_base_container.outputs.built_image }}
       - name: extract
         run: |
           mkdir out
