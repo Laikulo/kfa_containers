@@ -37,15 +37,15 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images:
-            ghcr.io/laikulo/kfa_build_${{ on.workflow_call.inputs.machine }}
+            ghcr.io/laikulo/kfa_build_${{ inputs.machine }}
 
       - name: Docker Build
         uses: docker/build-push-action@v5
         id: build
         with:
           push: ${{ github.event_name != 'pull_request' }}
-          context: ./kfa_build_${{ on.workflow_call.inputs.machine }}
-          file: ./kfa_build_${{ on.workflow_call.inputs.machine }}/Containerfile
+          context: ./kfa_build_${{ inputs.machine }}
+          file: ./kfa_build_${{ inputs.machine }}/Containerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -63,10 +63,10 @@ jobs:
       - name: extract
         run: |
           mkdir out
-          podman pull "${{ on.workflow_call.inputs.machine }}"
+          podman pull "${{ inputs.base_image }}"
           podman pull "${{ needs.build_base_container.outputs.built_image }}"
-          ./bin/extract-delta "${{ on.workflow_call.inputs.machine }}" "${{ needs.build_base_container.outputs.built_image }}" out/kfa_build_${{ on.workflow_call.inputs.machine }}.sfs
+          ./bin/extract-delta "${{ inputs.base_image }}" "${{ needs.build_base_container.outputs.built_image }}" out/kfa_build_${{ inputs.machine }}.sfs
       - uses: actions/upload-artifact@v4
         with:
-          path: out/kfa_build_${{ on.workflow_call.inputs.machine }}.sfs
-          name: 'kfa_build_${{ on.workflow_call.inputs.machine }}.sfs'
+          path: out/kfa_build_${{ inputs.machine }}.sfs
+          name: 'kfa_build_${{ inputs.machine }}.sfs'
