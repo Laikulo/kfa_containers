@@ -4,36 +4,39 @@ on:
 
 name: Build KFA Containers and Layers
 
-build_containers:
-  - uses: actions/checkout@v4
-
-  - name: setup Buildx
-    uses: docker/setup-buildx-action@v3
-
-  - name: Log into registry ${{ env.REGISTRY }}
-    if: github.event_name != 'pull_request'
-    uses: docker/login-action@v3
-    with:
-      registry: ${{ env.REGISTRY }}
-      username: ${{ github.actor }}
-      password: ${{ secrets.GITHUB_TOKEN }}
-
-
-  - name: Docker metadata
-    id: meta
-    uses: docker/metadata-action@v5
-    with:
-      images:
-        ${{ env.REGISTRY }}/${{github.repository}}/kfa_buildbase
-
-
-  - name: Docker Build
-    uses: docker/build-push-action@v5
-    with:
-      push: ${{ github.event_name != 'pull_request' }}
-      context: ./kfa_basebuild
-      file: ./kfa_basebuild/Containerfile
-      tags: ${{ steps.meta.outputs.tags }}
-      labels: ${{ steps.meta.outputs.labels }}
-      cache-from: type=gha
-      cache-to: type=gha,mode=max
+jobs:
+  build_containers:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+  
+    - name: setup Buildx
+      uses: docker/setup-buildx-action@v3
+  
+    - name: Log into registry ${{ env.REGISTRY }}
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+  
+  
+    - name: Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images:
+          ${{ env.REGISTRY }}/${{github.repository}}/kfa_buildbase
+  
+  
+    - name: Docker Build
+      uses: docker/build-push-action@v5
+      with:
+        push: ${{ github.event_name != 'pull_request' }}
+        context: ./kfa_basebuild
+        file: ./kfa_basebuild/Containerfile
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
