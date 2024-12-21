@@ -12,7 +12,8 @@ from bitnami/minideb:latest as pruchain_builder
   env PREFIX=/opt/gnupru
   run ./build.sh
   
-from kfa_buildbase:latest
+ARG BASE_IMAGE=kfa_buildbase:latest
+from ${BASE_IMAGE}
   run install_packages libmpc3 libgmp10 libmpfr6
   copy --from=pruchain_builder /opt/gnupru /opt/gnupru/
   env PATH=${PATH}:/opt/gnupru/bin

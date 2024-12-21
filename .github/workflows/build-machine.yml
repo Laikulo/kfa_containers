@@ -43,6 +43,7 @@ jobs:
         uses: docker/build-push-action@v5
         id: build
         with:
+          build-args: 'BASE_IMAGE="${{ inputs.base_image }}"'
           push: ${{ github.event_name != 'pull_request' }}
           context: ./kfa_build_${{ inputs.machine }}
           file: ./kfa_build_${{ inputs.machine }}/Containerfile

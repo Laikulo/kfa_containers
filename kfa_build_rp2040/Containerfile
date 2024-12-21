@@ -1,2 +1,3 @@
-from kfa_buildbase:latest
-  run install_packages libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi cpp g++
+ARG BASE_IMAGE=kfa_buildbase:latest
+from ${BASE_IMAGE}
+run install_packages libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi cpp g++
