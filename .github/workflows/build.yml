@@ -34,8 +34,8 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         push: ${{ github.event_name != 'pull_request' }}
-        context: ./kfa_basebuild
-        file: ./kfa_basebuild/Containerfile
+        context: ./kfa_buildbase
+        file: ./kfa_buildbase/Containerfile
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
