@@ -11,7 +11,8 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     outputs:
-      built_image: ${{ steps.build.outputs.imageid }}
+      built_imageid: ${{ steps.build.outputs.imageid }}
+      built_image: ${{ steps.meta.outputs.tags[0] }}@${{ steps.build.outputs.imageid }}
     steps:
     - uses: actions/checkout@v4
   
