@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
-set -x
+function cleanup {
+  set +e
+  if [[ $tmp_dir ]]; then
+    rm -rf "$tmp_dir"
+  fi
+  trap - ERR
+  exit
+}
+
+trap cleanup ERR
+
+set -xe
+
+
 target_image="$1"
 output_filename="${2:-$target_image.sfs}"
 typeset -a layers
@@ -20,4 +33,4 @@ pushd "$tmp_dir"
 	tar -A -f "${layer_tars[@]}"
 popd
 mksquashfs - "$output_filename" -tar <"${tmp_dir}/${layer_tars[0]}"
-rm -rf "${tmp_dir}"
+cleanup

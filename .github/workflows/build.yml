@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       built_imageid: ${{ steps.build.outputs.imageid }}
-      built_image: ${{ steps.meta.outputs.tags[0] }}@${{ steps.build.outputs.imageid }}
+      built_image: ${{ steps.meta.outputs.tags }}@${{ steps.build.outputs.imageid }}
     steps:
     - uses: actions/checkout@v4
   
