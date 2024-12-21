@@ -10,6 +10,8 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
+    outputs:
+      built_image: ${{ steps.build.outputs.imageid }}
     steps:
     - uses: actions/checkout@v4
   
@@ -34,6 +36,7 @@ jobs:
 
     - name: Docker Build
       uses: docker/build-push-action@v5
+      id: build
       with:
         push: ${{ github.event_name != 'pull_request' }}
         context: ./kfa_buildbase
@@ -42,3 +45,20 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+  extract_base_layer:
+    runs-on: ubuntu-latest
+    needs:
+      - build_base_container
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull
+        run: |
+          docker pull ${{ needs.build_base_container.outputs.built_image }}
+      - name: extract
+        run: |
+          mkdir out
+          ./bin/extract-base-layer "${{needs.build_base_container.outputs.built_image" out/kfa_buildbase.sfs
