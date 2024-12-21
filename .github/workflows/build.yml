@@ -59,5 +59,8 @@ jobs:
       - name: extract
         run: |
           mkdir out
-          podman pull "${{ needs.build_base_container.outputs.built_image }}"
+          podman pull "${{ needs.build_base_container.outputs.built_imate }}"
           ./bin/extract-base-layer "${{ needs.build_base_container.outputs.built_image }}" out/kfa_buildbase.sfs
+      - uses: actions/upload-artifact@v4
+        with:
+          path: out/kfa_buildbase.sfs
