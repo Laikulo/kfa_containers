@@ -80,3 +80,23 @@ jobs:
     with:
       machine: ${{ matrix.machine }}
       base_image: ${{ needs.build_base_container.outputs.built_image }}
+
+  upload_squashes:
+    needs:
+      - call_machine_builds
+      - extract_base_layer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - run: |
+          mkdir artifacts
+      - uses: actions/download-artifact@4
+        with:
+          path: artifacts
+          pattern: "kfa_*.sfs"
+          merge-muliple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v0.0.0-a0"
+          files: "artifacts/*.sfs"
