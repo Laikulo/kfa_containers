@@ -70,6 +70,7 @@ jobs:
     needs:
       - build_base_container
     strategy:
+      fail-fast: false
       matrix:
         machine: [ ar100, arm, avr, linux, pru, rp2040 ]
     uses: ./.github/workflows/build-machine.yml
