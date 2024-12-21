@@ -1,4 +1,7 @@
 ---
+on:
+  workflow_dispatch:
+
 name: Build KFA Containers and Layers
 
 build_containers:
