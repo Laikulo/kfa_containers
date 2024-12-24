@@ -1,5 +1,12 @@
 from bitnami/git:latest as retriever
-	run git clone --depth 1 https://github.com/klipper3d/klipper.git /usr/src/klipper
+	arg KLIPPER_UPSTREAM=https://github.com/klipper3d/klipper.git
+	arg KLIPPER_REF=master
+	run git clone --bare "${KLIPPER_UPSTREAM}" /usr/share/klipper_src && mkdir /usr/src/klipper
+	env GIT_DIR=/usr/share/klipper_src
+	run git worktree add --checkout /usr/src/klipper "${KLIPPER_REF}" 
+	env GIT_WORK_TREE=/usr/src/klipper
+	workdir /usr/src/klipper
+	run git describe --long --tags --always > /usr/src/klipper/src/.version
 
 from scratch as klipper_holder
 copy --from=retriever /usr/src/klipper/ /
