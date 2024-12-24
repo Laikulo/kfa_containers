@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+## Prototype build script. Assumes that the base, source, and arch sfs's are in the working directory
+
+function entrypoint {
+	if [[ $1 == "--phase" ]]; then
+		current_phase="$2"
+		shift 2
+	else
+		current_phase=1
+	fi
+	echo >&2 "Launching phase $current_phase"
+	echo >&2 "Effective user is $(whoami)"
+	
+	case $current_phase in
+		1)
+			setup_outer_ns "$@"
+			;;
+		2)
+			setup_workspace "arm"
+			launch_self_inside "$@"
+			;;
+		3)
+			setup_sane_env
+			/bin/bash
+			;;
+	esac
+}
+
+function setup_outer_ns {
+	unshare -rm "$0" --phase 2 "$@"
+}
+
+function setup_workspace {
+	mkdir build_workspace
+	mkdir -p build_workspace/{layers/{base,arch},root,tmp,klipper/src}
+	
+	# Mount the build infra layers
+	squashfuse kfa_buildbase.sfs -o allow_other build_workspace/layers/base
+	squashfuse "kfa_build_$1.sfs" -o allow_other build_workspace/layers/arch
+
+	# Mount the klipper src bundle
+	squashfuse klipper_src.sfs build_workspace/klipper/src
+
+	# Set up a tmpfs for the klipper src overlay
+	mount -t tmpfs kfa_tmp build_workspace/tmp
+	mkdir -p build_workspace/tmp/klipper_{work,upper}
+
+	# Build the read-only overlay for the build infra
+	mount -t overlay kfa_build -o lowerdir=$PWD/build_workspace/layers/base:$PWD/build_workspace/layers/arch build_workspace/root
+	
+	# Make a tmpfs inside the root for /tmp
+	mount -t tmpfs kfa_build_tmp build_workspace/root/tmp
+
+	# Also make one for dev, so we can bind things there
+	mount -t tmpfs kfa_build_dev build_workspace/root/dev
+
+	# Mount a r/w overlay for the build directory
+	mount -t overlay kfa_workspace -o lowerdir=$PWD/build_workspace/klipper/src,workdir=$PWD/build_workspace/tmp/klipper_work,upperdir=$PWD/build_workspace/tmp/klipper_upper build_workspace/root/usr/src/klipper
+
+	# Copy this script into the workspace
+	cp "$0" build_workspace/root/tmp/kfa_build
+}
+
+function launch_self_inside {
+	unshare -R build_workspace/root -w build_workspace/root/usr/src/klipper /usr/bin/env -i TERM="$TERM" /tmp/kfa_build --phase 3 "$@"
+}
+
+function path_add {
+	# Add the arg to PATH if it exists
+	if [[ -d $1 ]]; then
+		PATH="$PATH:$1"
+	fi
+}
+
+function setup_sane_env {
+	# When we arrive here, the environment is empty, save for TERM. Make a first guess at PATH
+	PATH="/usr/bin:/usr/sbin:/bin:/sbin"
+	# Grab the paths of a few toolchains
+	path_add /opt/or1k-linux-musl-cross/bin
+	path_add /opt/gnupru/bin
+	export PATH
+	
+}
+
+entrypoint "$@"
+exit $?
