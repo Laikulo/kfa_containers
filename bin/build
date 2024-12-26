@@ -2,32 +2,93 @@
 
 ## Prototype build script. Assumes that the base, source, and arch sfs's are in the working directory
 
+
 function entrypoint {
+	if [[ $KFA_DEBUG ]]; then
+		set -x
+	fi
 	if [[ $1 == "--phase" ]]; then
 		current_phase="$2"
 		shift 2
 	else
 		current_phase=1
 	fi
-	echo >&2 "Launching phase $current_phase"
-	echo >&2 "Effective user is $(whoami)"
+	if [[ $KFA_DEBUG ]]; then	
+		echo >&2 "Launching phase $current_phase"
+		echo >&2 "Effective user is $(whoami)"
+		echo >&2 "Dumping Environment..."
+		printenv >&2
+	fi
 	
 	case $current_phase in
 		1)
+			parse_args "$@"
 			setup_outer_ns "$@"
+			rm -rf build_workspace
 			;;
 		2)
-			setup_workspace "arm"
+			setup_workspace "${KFA_MACHINE}"
 			launch_self_inside "$@"
+			cp -r build_workspace/root/tmp/output results
 			;;
 		3)
 			setup_sane_env
-			/bin/bash
+			do_build
+			cp -rp out/klipper.* /tmp/output
 			;;
 	esac
 }
 
+
+function do_build {
+	if [[ $KFA_MENUCONFIG ]]; then
+		make menuconfig
+	fi
+	if [[ $KFA_STARTSHELL ]]; then
+		/bin/bash
+		return
+	fi
+	make
+}
+
+function parse_args {
+	opt_MACHINE=""
+	while [[ $1 ]]; do
+		case "$1" in
+			--machine|-m)
+				opt_MACHINE="$2"
+				shift 2
+				;;
+                        --shell)
+				opt_STARTSHELL="1"
+				shift 1
+				;;
+			--menuconfig|-M)
+				opt_MENUCONFIG="1"
+				shift 1
+				;;
+			--)
+				# Explicit end of positional args
+				shift 1
+				break
+				;;
+			-*)
+				echo >&2 "FATAL: Unknown arg $1"
+				exit 1
+				;;
+			*)
+				# Implicit end of positional args
+				break
+				;;
+		esac
+	done
+}
+
 function setup_outer_ns {
+	export \
+		KFA_MACHINE="$opt_MACHINE" \
+		KFA_MENUCONFIG="$opt_MENUCONFIG" \
+		KFA_STARTSHELL="$opt_STARTSHELL"
 	unshare -rm "$0" --phase 2 "$@"
 }
 
@@ -37,7 +98,9 @@ function setup_workspace {
 	
 	# Mount the build infra layers
 	squashfuse kfa_buildbase.sfs -o allow_other build_workspace/layers/base
-	squashfuse "kfa_build_$1.sfs" -o allow_other build_workspace/layers/arch
+	if [[ $1 ]]; then
+		squashfuse "kfa_build_$1.sfs" -o allow_other build_workspace/layers/arch
+	fi
 
 	# Mount the klipper src bundle
 	squashfuse klipper_src.sfs build_workspace/klipper/src
@@ -51,6 +114,7 @@ function setup_workspace {
 	
 	# Make a tmpfs inside the root for /tmp
 	mount -t tmpfs kfa_build_tmp build_workspace/root/tmp
+	mkdir build_workspace/root/tmp/output
 
 	# Also make one for dev, so we can bind things there
 	mount -t tmpfs kfa_build_dev build_workspace/root/dev
@@ -63,7 +127,12 @@ function setup_workspace {
 }
 
 function launch_self_inside {
-	unshare -R build_workspace/root -w build_workspace/root/usr/src/klipper /usr/bin/env -i TERM="$TERM" /tmp/kfa_build --phase 3 "$@"
+	unshare -R build_workspace/root -w build_workspace/root/usr/src/klipper \
+		/usr/bin/env -i \
+		TERM="$TERM" \
+		KFA_STARTSHELL="$KFA_STARTSHELL" \
+		KFA_MENUCONFIG="$KFA_MENUCONFIG" \
+		/tmp/kfa_build --phase 3 "$@"
 }
 
 function path_add {
