@@ -32,8 +32,8 @@ kfa_buildbase.sfs: kfa_buildbase/.built
 	bin/extract-delta kfa_buildbase $*
 
 builders.oci: builders kfa_buildbase/.built
-	podman image save kfa_buildbase $(foreach machine,$(machines),kfa_$(machine)) > $@
+	podman image save -m -o $@ kfa_buildbase $(foreach machine,$(machines),kfa_build_$(machine))
 
 clean:
-	rm -fv kfa_build_*/.built kfa_buildbase/.built kfa_*.sfs
+	rm -fv kfa_build_*/.built kfa_buildbase/.built kfa_*.sfs builders.oci
 
