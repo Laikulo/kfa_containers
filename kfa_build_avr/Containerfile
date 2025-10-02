@@ -1,3 +1,6 @@
 ARG BASE_IMAGE=kfa_buildbase:latest
-from ${BASE_IMAGE}
-run install_packages gcc-avr avr-libc
+FROM ${BASE_IMAGE}
+RUN \
+    apt-get update && \
+    apt-get install -y gcc-avr avr-libc && \
+    apt-get clean

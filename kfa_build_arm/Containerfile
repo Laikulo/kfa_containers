@@ -1,3 +1,6 @@
 ARG BASE_IMAGE=kfa_buildbase:latest
-from ${BASE_IMAGE}
-run install_packages libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi cpp
+FROM ${BASE_IMAGE}
+RUN \
+    apt-get update && \
+    apt-get install -y libnewlib-arm-none-eabi gcc-arm-none-eabi binutils-arm-none-eabi cpp && \
+    apt-get clean

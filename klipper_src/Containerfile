@@ -1,12 +1,17 @@
-from bitnami/git:latest as retriever
-	arg KLIPPER_UPSTREAM=https://github.com/klipper3d/klipper.git
-	arg KLIPPER_REF=master
-	run git clone --bare "${KLIPPER_UPSTREAM}" /usr/share/klipper_src && mkdir /usr/src/klipper
-	env GIT_DIR=/usr/share/klipper_src
-	run git worktree add --checkout /usr/src/klipper "${KLIPPER_REF}" 
-	env GIT_WORK_TREE=/usr/src/klipper
-	workdir /usr/src/klipper
-	run git describe --long --tags --always > /usr/src/klipper/src/.version
+FROM docker.io/debian:bookworm-slim as git
+RUN \
+    apt-get update && \
+    apt-get install -y git && \
+    apt-get clean
 
-from scratch as klipper_holder
-copy --from=retriever /usr/src/klipper/ /
+FROM git as retriever
+ARG KLIPPER_UPSTREAM=https://github.com/klipper3d/klipper.git
+ARG KLIPPER_REF=master
+RUN git clone --bare "${KLIPPER_UPSTREAM}" /usr/share/klipper_src && mkdir /usr/src/klipper
+ENV GIT_DIR=/usr/share/klipper_src GIT_WORK_TREE=/usr/src/klipper
+RUN git checkout "${KLIPPER_REF}"
+WORKDIR /usr/src/klipper
+RUN git describe --long --tags --always | tee /usr/src/klipper/src/.version
+
+FROM scratch as klipper_holder
+COPY --from=retriever /usr/src/klipper/ /
