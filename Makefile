@@ -1,5 +1,6 @@
 all: layers kltest/.built builders.oci
 
+PODMAN_PLATFORM = linux/amd64
 
 machines := linux avr ar100 arm rp2040 pru
 
@@ -10,15 +11,15 @@ layers: $(foreach machine,$(machines),kfa_build_$(machine).sfs)
 .PHONEY: all builders clean layers
 
 kfa_buildbase/.built: kfa_buildbase/Containerfile 
-	podman build -t kfa_buildbase kfa_buildbase
+	podman build --platform $(PODMAN_PLATFORM) -t kfa_buildbase kfa_buildbase
 	touch $@
 
 kltest/.built: kltest/Containerfile klipper_src/.built
-	podman build -t kltest kltest
+	podman build --platform $(PODMAN_PLATFORM) -t kltest kltest
 	touch $@
 
 %/.built: %/Containerfile kfa_buildbase/.built
-	podman build -t $* $*
+	podman build --platform $(PODMAN_PLATFORM) -t $* $*
 	touch $@
 
 
